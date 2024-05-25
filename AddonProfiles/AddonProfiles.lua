@@ -118,6 +118,24 @@ local function restoreProfile (profile, characterOrAll)
   end
 end
 
+local function mergeProfile (profile, characterOrAll)
+  for x = 1, GetNumAddOns(), 1 do
+    local addonName = GetAddOnInfo(x);
+
+    if (profile[addonName] == true) then
+      EnableAddOn(addonName, characterOrAll);
+    end
+  end
+end
+
+local function removeProfile (profile, characterOrAll)
+  for x = 1, GetNumAddOns(), 1 do
+    local addonName = GetAddOnInfo(x);
+    if (profile[addonName] == true and addonName ~= ADDON_NAME) then
+      DisableAddOn(addonName, characterOrAll);
+    end
+  end
+end
 --[[ This has to return either a character name or nil, as it will be passed
      directly to EnableAddOn ]]
 local function parseAllCharactersFlag (allCharacters)
@@ -153,6 +171,10 @@ function slashCommands.delete (...)
 end
 
 function slashCommands.default ()
+  print('available commands:')
+  print('save|load|delete <profileName> [all]')
+  print('add <profileName> [all]: enable all addons from profileName')
+  print('remove <profileName> [all]: disable all addons from profileName')
   if (next(profiles) == nil) then
     return print('no addon profiles saved');
   end
@@ -162,3 +184,19 @@ function slashCommands.default ()
     print(profileName);
   end
 end
+
+function slashCommands.add (profileName, allCharacters)
+  local profile = getAddonProfile(profileName);
+  if (profile ~= nil) then
+    mergeProfile(profile, parseAllCharactersFlag(allCharacters))
+    print('merging addons from profile:', profileName)
+  end
+end 
+
+function slashCommands.remove (profileName, allCharacters)
+  local profile = getAddonProfile(profileName);
+  if (profile ~= nil) then
+    removeProfile(profile, parseAllCharactersFlag(allCharacters))
+    print('disabling addons from profile:', profileName)
+  end
+end 
